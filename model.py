@@ -2,13 +2,13 @@ import torch
 from torch import nn
 from config import *
 from attention import BahdanauAttention
-from Data.data import load_data_loaders
+from Data.data import cache_or_process
 
 
 
 torch.manual_seed(SEED)
 
-train_data_loader, valid_data_loader, test_data_loader, en_tokenizer, vi_tokenizer = load_data_loaders()
+train_data_loader, valid_data_loader, test_data_loader, en_tokenizer, vi_tokenizer = cache_or_process()
 
 INPUT_DIM = en_tokenizer.get_vocab_size()
 OUTPUT_DIM = vi_tokenizer.get_vocab_size()
@@ -24,6 +24,8 @@ class Encoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
         
     def forward(self, x):
+        # if DEVICE == 'cuda':
+        #     x = x.to(DEVICE)
         embedded = self.dropout(self.embedding(x))
         outputs, hidden = self.rnn(embedded)
         
@@ -86,7 +88,7 @@ class Seq2Seq(nn.Module):
         
         encoder_outputs, hidden = self.encoder(src)
 
-        input = trg[:, 0]  
+        input = trg[:, 0]  # trg.shape: (BATCH_SIZE, MAX_LENGTH), input: (BATCH_SIZE, 1)
         
         for t in range(1, MAX_LENGTH):
             output, hidden, _ = self.decoder(input.unsqueeze(1), encoder_outputs, hidden)
