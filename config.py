@@ -1,4 +1,4 @@
-sos_token, eos_token, pad_token, unk_token, special_tokens = "<sos>", "<eos>", "<pad>", "<unk>", ["<s>", "</s>", "<pad>", "<unk>"]
+sos_token, eos_token, pad_token, unk_token, special_tokens = "<sos>", "<eos>", "<pad>", "<unk>", ["<sos>", "<eos>", "<pad>", "<unk>"]
 
 MAX_LENGTH=50
 BATCH_SIZE=32

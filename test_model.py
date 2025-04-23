@@ -65,3 +65,15 @@ def test_seq2seq_output_shapes():
     target_tensor = torch.randint(0, OUTPUT_DIM, (BATCH_SIZE, MAX_LENGTH))
     outputs = seq2seq(input_tensor, target_tensor, TEACHER_FORCING_RATIO)
     assert outputs.shape == (BATCH_SIZE, MAX_LENGTH, OUTPUT_DIM)
+    
+    
+def test_data_loader_shapes():
+    train_data_loader, valid_data_loader, test_data_loader, en_tokenizer, vi_tokenizer = load_data_loaders()
+    for batch in train_data_loader:
+        src_ids = batch['src_ids']
+        trg_ids = batch['trg_ids']
+        break
+    assert len(src_ids) == MAX_LENGTH
+    assert len(src_ids[0]) == BATCH_SIZE
+    assert len(trg_ids) == MAX_LENGTH
+    assert len(trg_ids[0]) == BATCH_SIZE

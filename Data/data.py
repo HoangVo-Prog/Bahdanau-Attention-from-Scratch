@@ -46,7 +46,7 @@ def bytepair_tokenize(train_data):
     return en_tokenizer, vi_tokenizer
 
 
-def tokenize(data, tokenizer, max_length=MAX_LENGTH):
+def tokenize(data, tokenizer):
     encoding = tokenizer.encode(data)
     ids = [tokenizer.token_to_id(sos_token)] + encoding.ids + [tokenizer.token_to_id(eos_token)]
     return ids
@@ -77,7 +77,8 @@ def get_data_loader(dataset, batch_size, shuffle=False):
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
-def data_loader():     
+def data_loader():   
+    global train_data, valid_data, test_data  
     en_tokenizer, vi_tokenizer = bytepair_tokenize(train_data)
     
     train_data = train_data.map(lambda x: tokenize_and_numericalize(x, en_tokenizer, vi_tokenizer))
@@ -117,8 +118,8 @@ def load_data_loaders():
     return train_loader, valid_loader, test_loader, en_tokenizer, vi_tokenizer
 
 
-if __name__ == "__main__":
-    # # Load the dataset from Hugging Face
+# if __name__ == "__main__":
+    # Load the dataset from Hugging Face
     # print("Loading dataset...")
     # ds = load_dataset("thainq107/iwslt2015-en-vi")
     
@@ -129,4 +130,3 @@ if __name__ == "__main__":
     # print("Saving dataloaders & tokenizers...")
     # train_loader, valid_loader, test_loader, en_tokenizer, vi_tokenizer = data_loader()
     # save_data_loaders(train_loader, valid_loader, test_loader, en_tokenizer, vi_tokenizer)
-    pass
