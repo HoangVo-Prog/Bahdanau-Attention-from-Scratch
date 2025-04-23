@@ -1,0 +1,5 @@
+encoder = Encoder(input_dim=INPUT_DIM, hidden_dim=HIDDEN_DIM, output_dim=OUTPUT_DIM, num_layers=NUM_LAYERS, dropout=DROPOUT, bidirectional=BIDIRECTIONAL)
+input = torch.randint(0, INPUT_DIM, (BATCH_SIZE, MAX_LENGTH))
+output, hidden = encoder(input)
+print("Encoder output shape:", output.shape)  # Should be (BATCH_SIZE, MAX_LENGTH, OUTPUT_DIM)
+print("Encoder hidden shape:", hidden.shape)  # Should be (BATCH_SIZE, HIDDEN_DIM)
