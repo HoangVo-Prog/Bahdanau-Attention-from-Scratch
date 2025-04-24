@@ -9,8 +9,6 @@ from model import *
 from config import *
 
 
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a Seq2Seq model")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to training data", default="")
@@ -42,7 +40,7 @@ def main():
         dropout=DROPOUT,
         bidirectional=BIDIRECTIONAL
     )
-
+    print("Model initialized")
     model = Seq2Seq(encoder, decoder, device=DEVICE)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss(ignore_index=src_pad_index)
@@ -69,6 +67,8 @@ def main():
         bleu_scores = []
         best_valid_loss = float("inf")
 
+    print("Training model...")
+    print("Start training...")
 
     train_and_evaluate(
         model,
@@ -79,7 +79,7 @@ def main():
         scheduler,
         n_epochs=n_epochs,
         teacher_forcing_ratio=0.5,
-        device='cuda',
+        device=DEVICE,
         start_epoch=start_epoch,
         train_losses=train_losses,
         val_losses=val_losses,
