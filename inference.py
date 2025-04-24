@@ -87,7 +87,7 @@ def main():
         bidirectional=BIDIRECTIONAL
     )
     
-    model = Seq2Seq(encoder, decoder, device=DEVICE)
+    model = Seq2Seq(encoder, decoder)
     model.load_state_dict(torch.load(checkpoint_path))
     model.eval()  # Set the model to evaluation mode
     
