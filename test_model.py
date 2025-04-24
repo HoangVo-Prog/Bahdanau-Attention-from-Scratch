@@ -18,7 +18,7 @@ def test_encoder_output_shapes():
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
-        bidirectional=BIDIRECTIONAL
+        bidirectional=BIDIRECTIONAL_ENCODER
     )
     input_tensor = first_batch['src_ids']
     output, hidden = encoder(input_tensor)
@@ -44,7 +44,7 @@ def test_decoder_output_shapes():
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
-        bidirectional=BIDIRECTIONAL
+        bidirectional=BIDIRECTIONAL_DECODER
     )
     input_tensor = first_batch['trg_ids'][:, 0].unsqueeze(1)  
     hidden = torch.randn(BATCH_SIZE, HIDDEN_DIM)
@@ -62,7 +62,7 @@ def test_seq2seq_output_shapes():
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
-        bidirectional=BIDIRECTIONAL
+        bidirectional=BIDIRECTIONAL_ENCODER
     )
     decoder = Decoder(
         input_dim=INPUT_DIM,
@@ -70,7 +70,7 @@ def test_seq2seq_output_shapes():
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
-        bidirectional=BIDIRECTIONAL
+        bidirectional=BIDIRECTIONAL_DECODER
     )
     seq2seq = test_model.Seq2Seq(encoder, decoder)
     input_tensor = first_batch['src_ids']

@@ -17,19 +17,19 @@ class Encoder(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers, dropout, bidirectional):
         super(Encoder, self).__init__()
         self.embedding = nn.Embedding(input_dim, hidden_dim)
-        self.lstm = nn.LSTM(hidden_dim, hidden_dim, num_layers=num_layers, dropout=dropout, bidirectional=bidirectional, batch_first=True)
+        self.gru = nn.GRU(hidden_dim, hidden_dim, num_layers=num_layers, bidirectional=bidirectional, batch_first=True)
         self.fc = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         self.fc_hidden = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
-        self.batch_norm = nn.BatchNorm1d(hidden_dim * 2 if bidirectional else hidden_dim)
+        self.layer_norm = nn.LayerNorm(hidden_dim * 2 if bidirectional else hidden_dim)
         self.dropout = nn.Dropout(dropout)
         
     def forward(self, x):
        
         x = x.to(DEVICE)
         embedded = self.dropout(self.embedding(x))
-        outputs, (hidden, _) = self.lstm(embedded)
+        outputs, hidden = self.gru(embedded)
         
-        outputs = self.batch_norm(outputs.permute(0, 2, 1))  
+        outputs = self.layer_norm(outputs.permute(0, 2, 1))  
         outputs = outputs.permute(0, 2, 1) 
         
         if self.lstm.bidirectional:
@@ -37,15 +37,16 @@ class Encoder(nn.Module):
 
         outputs = self.fc(outputs)
         hidden = self.fc_hidden(hidden)
+        outputs = self.dropout(outputs)
         
-        return outputs, hidden # (BATCH_SIZE, MAX_LENGTH, HIDDEN_DIM), (4, BATCH_SIZE, HIDDEN_DIM)
+        return outputs, hidden # (BATCH_SIZE, MAX_LENGTH, HIDDEN_DIM), (BATCH_SIZE, HIDDEN_DIM)
 
     
 class Decoder(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers, dropout, bidirectional):
         super(Decoder, self).__init__()
         self.embedding = nn.Embedding(input_dim, hidden_dim)
-        self.lstm = nn.LSTM(hidden_dim*2, hidden_dim, num_layers=num_layers, dropout=dropout, bidirectional=bidirectional, batch_first=True)
+        self.gru = nn.GRU(hidden_dim*2, hidden_dim, num_layers=num_layers, bidirectional=bidirectional, batch_first=True)
         self.attention = BahdanauAttention(hidden_dim)
         self.fc_hidden = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         self.fc_out = nn.Linear(hidden_dim, output_dim)
@@ -54,7 +55,7 @@ class Decoder(nn.Module):
         self.fc = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         
     def forward(self, input, encoder_outputs, hidden):
-        
+        # input.shape: (BATCH_SIZE, 1), encoder_outputs.shape: (BATCH_SIZE, MAX_LENGTH, HIDDEN_DIM), hidden.shape: (BATCH_SIZE, HIDDEN_DIM)
         input = input.to(DEVICE)
         embedded = self.dropout(self.embedding(input))
         context, attn_weights = self.attention(hidden, encoder_outputs)
@@ -63,7 +64,7 @@ class Decoder(nn.Module):
         
         rnn_input = torch.cat((embedded, context), dim=2)
                 
-        outputs, (hidden, _) = self.lstm(rnn_input, (hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1), cell))
+        outputs, hidden = self.gru(rnn_input, (hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1), cell))
         
         outputs = self.batch_norm(outputs.permute(0, 2, 1))
         outputs = outputs.permute(0, 2, 1)
@@ -73,6 +74,7 @@ class Decoder(nn.Module):
             
         hidden = self.fc_hidden(hidden)
         outputs = self.fc(outputs)
+        outputs = self.dropout(outputs)
         predictions = self.fc_out(outputs.squeeze(1))
         
         return predictions, hidden, attn_weights

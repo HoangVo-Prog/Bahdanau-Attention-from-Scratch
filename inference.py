@@ -75,7 +75,7 @@ def main():
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
-        bidirectional=BIDIRECTIONAL
+        bidirectional=BIDIRECTIONAL_ENCODER
     )
     
     decoder = Decoder(
@@ -84,7 +84,7 @@ def main():
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
-        bidirectional=BIDIRECTIONAL
+        bidirectional=BIDIRECTIONAL_DECODER
     )
     
     model = Seq2Seq(encoder, decoder)
