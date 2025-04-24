@@ -1,27 +1,40 @@
 from training import train_and_evaluate
-from huggingface_hub import HfApi
 import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
 from torch.optim import lr_scheduler
-from model import Seq2Seq, Encoder, Decoder
+from model import *
+from Data.data import cache_or_process
+from config import *
 
-# Login to Hugging Face (do this once)
-from huggingface_hub import login
-login(input("Enter your Hugging Face token: "))  
+src_pad_index = en_tokenizer.token_to_id(pad_token)
+trg_pad_index = vi_tokenizer.token_to_id(pad_token)
 
-checkpoint_path = ""
+encoder = Encoder(
+    input_dim=INPUT_DIM,
+    hidden_dim=HIDDEN_DIM,
+    output_dim=OUTPUT_DIM,
+    num_layers=NUM_LAYERS,
+    dropout=DROPOUT,
+    bidirectional=BIDIRECTIONAL
+)
 
+decoder = Decoder(
+    input_dim=INPUT_DIM,
+    hidden_dim=HIDDEN_DIM,
+    output_dim=OUTPUT_DIM,
+    num_layers=NUM_LAYERS,
+    dropout=DROPOUT,
+    bidirectional=BIDIRECTIONAL
+)
 
-
-model = Seq2Seq(encoder, decoder).to(DEVICE)  # or however you instantiated it
-
-optimizer = optim.Adam(seq2seq.parameters(), lr=0.001)
+model = Seq2Seq(encoder, decoder, device=DEVICE)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.CrossEntropyLoss(ignore_index=src_pad_index)
 scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2, verbose=True)
 
-
+checkpoint_path = ""
 
 if checkpoint_path: 
     checkpoint = torch.load(checkpoint_path)
@@ -63,22 +76,3 @@ best_model = train_and_evaluate(
     bleu_scores=bleu_scores,
     best_valid_loss=best_valid_loss
 )
-
-# Save the model locally first
-save_path = "model_weights"
-os.makedirs(save_path, exist_ok=True)
-torch.save(best_model.state_dict(), f"{save_path}/model.pt")
-
-# Push to Hugging Face Hub
-repo_name = "your-username/your-model-name"  # replace with your desired repository name
-api = HfApi()
-api.upload_file(
-    path_or_fileobj=f"{save_path}/model.pt",
-    path_in_repo="model.pt",
-    repo_id=repo_name,
-    repo_type="model"
-)
-
-# You can also save the configuration and tokenizer if needed
-# model.config.save_pretrained(repo_name)
-# tokenizer.save_pretrained(repo_name)
