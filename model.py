@@ -94,11 +94,14 @@ class Seq2Seq(nn.Module):
         input = trg[:, 0]  # trg.shape: (BATCH_SIZE, MAX_LENGTH), input: (BATCH_SIZE, 1)
         
         for t in range(1, MAX_LENGTH):
-            output, hidden, _ = self.decoder(input.unsqueeze(1), encoder_outputs, hidden)
-            outputs[:, t] = output
+            output, hidden, _ = self.decoder(
+                input.unsqueeze(1), encoder_outputs, hidden
+            )
+
+            outputs[:, t, :] = output
             
-            top1 = output.argmax(1)  
-            
-            input = top1 if torch.rand(1) > teacher_forcing_ratio else trg[:, t]
+            teacher_force = torch.rand(1, device=DEVICE).item() < teacher_forcing_ratio
+            top1 = output.argmax(1)
+            input = trg[:, t] if teacher_force else top1
             
         return outputs  
