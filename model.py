@@ -60,7 +60,7 @@ class Decoder(nn.Module):
         context, attn_weights = self.attention(hidden, encoder_outputs)
         
         rnn_input = torch.cat((embedded, context), dim=2)
-        outputs, (hidden, _) = self.lstm(rnn_input, hidden.unsqueeze(0).repeat(self.rnn.num_layers*(int(self.rnn.bidirectional)+1), 1, 1))
+        outputs, (hidden, _) = self.lstm(rnn_input, hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1))
         
         outputs = self.batch_norm(outputs.permute(0, 2, 1))
         outputs = outputs.permute(0, 2, 1)
