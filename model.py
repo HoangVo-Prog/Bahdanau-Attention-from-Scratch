@@ -49,7 +49,7 @@ class Decoder(nn.Module):
         self.attention = BahdanauAttention(hidden_dim)
         self.fc_hidden = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         self.fc_out = nn.Linear(hidden_dim, output_dim)
-        self.batch_norm = nn.BatchNorm1d(hidden_dim * 2 if bidirectional else hidden_dim)
+        self.layer_norm = nn.LayerNorm(hidden_dim * 2 if bidirectional else hidden_dim)
         self.dropout = nn.Dropout(dropout)
         self.fc = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         
@@ -63,7 +63,7 @@ class Decoder(nn.Module):
                 
         outputs, hidden = self.gru(rnn_input, (hidden.unsqueeze(0).repeat(self.gru.num_layers*(int(self.gru.bidirectional)+1), 1, 1)))
         
-        outputs = self.batch_norm(outputs)
+        outputs = self.layer_norm(outputs)
         
         if self.gru.bidirectional:
             hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
