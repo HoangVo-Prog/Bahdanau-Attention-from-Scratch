@@ -42,7 +42,13 @@ def main():
         bidirectional=BIDIRECTIONAL
     )
     print("Model initialized")
+    
+    encoder = encoder.to(DEVICE)
+    decoder = decoder.to(DEVICE)
+    
     model = Seq2Seq(encoder, decoder, device=DEVICE)
+    model = model.to(DEVICE)
+    
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss(ignore_index=src_pad_index)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2, verbose=True)
@@ -69,7 +75,7 @@ def main():
         best_valid_loss = float("inf")
 
     print("Training model...")
-    print("Start training...")
+    print("Start training on:", DEVICE)
 
     train_and_evaluate(
         model,
