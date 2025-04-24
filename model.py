@@ -58,12 +58,10 @@ class Decoder(nn.Module):
         input = input.to(DEVICE)
         embedded = self.dropout(self.embedding(input))
         context, attn_weights = self.attention(hidden, encoder_outputs)
-        
-        cell = torch.zeros_like(hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1)).to(DEVICE)
-        
+            
         rnn_input = torch.cat((embedded, context), dim=2)
                 
-        outputs, hidden = self.gru(rnn_input, (hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1), cell))
+        outputs, hidden = self.gru(rnn_input, (hidden.unsqueeze(0).repeat(self.gru.num_layers*(int(self.gru.bidirectional)+1), 1, 1)))
         
         outputs = self.batch_norm(outputs)
         
