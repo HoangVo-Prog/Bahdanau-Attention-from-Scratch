@@ -11,7 +11,7 @@ from config import *
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a Seq2Seq model")
-    parser.add_argument("--checkpoint", type=str, required=True, help="Path to training data", default="")
+    parser.add_argument("--checkpoint", type=str, help="Path to training data", default="")
     parser.add_argument("--n_epochs", type=int, required=True, help="Path to number of epochs")
     
     return parser.parse_args()
