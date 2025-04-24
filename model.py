@@ -29,8 +29,7 @@ class Encoder(nn.Module):
         embedded = self.dropout(self.embedding(x))
         outputs, hidden = self.gru(embedded)
         
-        outputs = self.layer_norm(outputs.permute(0, 2, 1))  
-        outputs = outputs.permute(0, 2, 1) 
+        outputs = self.layer_norm(outputs)  
         
         if self.lstm.bidirectional:
             hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
@@ -66,8 +65,7 @@ class Decoder(nn.Module):
                 
         outputs, hidden = self.gru(rnn_input, (hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1), cell))
         
-        outputs = self.batch_norm(outputs.permute(0, 2, 1))
-        outputs = outputs.permute(0, 2, 1)
+        outputs = self.batch_norm(outputs)
         
         if self.lstm.bidirectional:
             hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
