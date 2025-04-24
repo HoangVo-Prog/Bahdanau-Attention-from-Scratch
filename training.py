@@ -64,7 +64,7 @@ def train_fn(model, train_loader, optimizer, criterion, clip, teacher_forcing_ra
         
         # Forward pass
         output = model(source, target, teacher_forcing_ratio)  # Get the model's output
-        
+        output = output.to(device)
         # Calculate loss (using CrossEntropy loss between the predicted and true target)
         loss = criterion(output[1:].view(-1, output.size(-1)), target[1:].view(-1))  # Flatten for CE loss
         
