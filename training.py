@@ -56,7 +56,7 @@ def train_fn(model, train_loader, optimizer, criterion, clip, teacher_forcing_ra
     model.train()  # Set model to training mode
     epoch_train_loss = 0
 
-    for batch in tqdm(train_loader, desc="Training Batches"):
+    for batch in train_loader:
         source = batch['src_ids'].to(device)
         target = batch['trg_ids'].to(device)
 

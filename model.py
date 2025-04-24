@@ -31,7 +31,7 @@ class Encoder(nn.Module):
         
         outputs = self.layer_norm(outputs)  
         
-        if self.lstm.bidirectional:
+        if self.gru.bidirectional:
             hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
 
         outputs = self.fc(outputs)
@@ -67,7 +67,7 @@ class Decoder(nn.Module):
         
         outputs = self.batch_norm(outputs)
         
-        if self.lstm.bidirectional:
+        if self.gru.bidirectional:
             hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
             
         hidden = self.fc_hidden(hidden)
