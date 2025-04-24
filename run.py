@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument("--n_epochs", type=int, required=True, help="Path to number of epochs")
     
     return parser.parse_args()
+
 def main():
     args = parse_args()
     checkpoint_path = args.checkpoint
@@ -86,3 +87,7 @@ def main():
         bleu_scores=bleu_scores,
         best_valid_loss=best_valid_loss
     )
+    
+    
+if __name__ == "__main__":
+    main()
