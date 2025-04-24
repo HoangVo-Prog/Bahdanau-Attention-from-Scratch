@@ -72,7 +72,7 @@ def test_seq2seq_output_shapes():
         dropout=DROPOUT,
         bidirectional=BIDIRECTIONAL
     )
-    seq2seq = test_model.Seq2Seq(encoder, decoder, device=DEVICE)
+    seq2seq = test_model.Seq2Seq(encoder, decoder)
     input_tensor = first_batch['src_ids']
     target_tensor = first_batch['trg_ids']
     outputs = seq2seq(input_tensor, target_tensor, TEACHER_FORCING_RATIO)

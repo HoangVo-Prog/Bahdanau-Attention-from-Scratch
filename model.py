@@ -76,11 +76,11 @@ class Decoder(nn.Module):
     
     
 class Seq2Seq(nn.Module):
-    def __init__(self, encoder, decoder, device):
+    def __init__(self, encoder, decoder):
         super(Seq2Seq, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
-        self.device = device
+        self.device = DEVICE
         
     def forward(self, src, trg, teacher_forcing_ratio=0.5):
         

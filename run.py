@@ -1,4 +1,6 @@
 from training import train_and_evaluate
+import random
+import numpy as np
 import os
 import argparse
 import torch
@@ -7,6 +9,7 @@ import torch.nn as nn
 from torch.optim import lr_scheduler
 from model import *
 from config import *
+from training import evaluate_fn
 
 
 def parse_args():
@@ -15,6 +18,14 @@ def parse_args():
     parser.add_argument("--n_epochs", type=int, required=True, help="Path to number of epochs")
     
     return parser.parse_args()
+
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+
 
 def main():
     args = parse_args()
@@ -46,7 +57,7 @@ def main():
     encoder = encoder.to(DEVICE)
     decoder = decoder.to(DEVICE)
     
-    model = Seq2Seq(encoder, decoder, device=DEVICE)
+    model = Seq2Seq(encoder, decoder)
     model = model.to(DEVICE)
     
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -94,6 +105,25 @@ def main():
         best_valid_loss=best_valid_loss
     )
     
+    print("Training complete. Model saved to checkpoint.pth")
+    print("Start evaluation on test set")
+    
+    
+    checkpoint_path = os.path.join(os.getcwd(), "checkpoint.pth")
+    
+    model = Seq2Seq(encoder, decoder).to(DEVICE)  # or however you instantiated it
+
+    # Load the weights
+    checkpoint = torch.load(checkpoint_path)
+        
+    model.load_state_dict(checkpoint['model_state_dict'])
+    
+    evaluate_fn(
+        model,
+        test_data_loader,
+        criterion,
+        device=DEVICE
+    )
     
 if __name__ == "__main__":
     main()
