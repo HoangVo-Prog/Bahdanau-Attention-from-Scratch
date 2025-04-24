@@ -59,8 +59,11 @@ class Decoder(nn.Module):
         embedded = self.dropout(self.embedding(input))
         context, attn_weights = self.attention(hidden, encoder_outputs)
         
+        cell = torch.zeros_like(hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1)).to(DEVICE)
+        
         rnn_input = torch.cat((embedded, context), dim=2)
-        outputs, (hidden, _) = self.lstm(rnn_input, hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1))
+                
+        outputs, (hidden, _) = self.lstm(rnn_input, (hidden.unsqueeze(0).repeat(self.lstm.num_layers*(int(self.lstm.bidirectional)+1), 1, 1), cell))
         
         outputs = self.batch_norm(outputs.permute(0, 2, 1))
         outputs = outputs.permute(0, 2, 1)
@@ -84,8 +87,7 @@ class Seq2Seq(nn.Module):
         
     def forward(self, src, trg, teacher_forcing_ratio=0.5):
         
-        # outputs = torch.zeros(batch_size, max_len, trg_vocab_size).to(self.device)
-        outputs = torch.zeros(BATCH_SIZE, MAX_LENGTH, OUTPUT_DIM)
+        outputs = torch.zeros(BATCH_SIZE, MAX_LENGTH, OUTPUT_DIM).to(DEVICE)
         
         encoder_outputs, hidden = self.encoder(src)
 
