@@ -83,11 +83,11 @@ class Seq2Seq(nn.Module):
         super(Seq2Seq, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
-        self.device = DEVICE
         
     def forward(self, src, trg, teacher_forcing_ratio=0.5):
-        
-        outputs = torch.zeros(BATCH_SIZE, MAX_LENGTH, OUTPUT_DIM).to(DEVICE)
+        batch_size = src.shape[0]
+        trg_len = trg.shape[1]
+        outputs = torch.zeros(batch_size, trg_len, OUTPUT_DIM).to(DEVICE)
         
         encoder_outputs, hidden = self.encoder(src)
 
