@@ -24,8 +24,8 @@ class Encoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
         
     def forward(self, x):
-        # if DEVICE == 'cuda':
-        #     x = x.to(DEVICE)
+       
+        x = x.to(DEVICE)
         embedded = self.dropout(self.embedding(x))
         outputs, hidden = self.rnn(embedded)
         
@@ -54,7 +54,8 @@ class Decoder(nn.Module):
         self.fc = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         
     def forward(self, input, encoder_outputs, hidden):
-
+        
+        input = input.to(DEVICE)
         embedded = self.dropout(self.embedding(input))
         context, attn_weights = self.attention(hidden, encoder_outputs)
         

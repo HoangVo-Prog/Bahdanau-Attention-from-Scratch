@@ -5,7 +5,6 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.optim import lr_scheduler
 from model import *
-from Data.data import cache_or_process
 from config import *
 
 src_pad_index = en_tokenizer.token_to_id(pad_token)
@@ -58,9 +57,7 @@ else:
     best_valid_loss = float("inf")
 
 
-
-# Train the model
-best_model = train_and_evaluate(
+train_and_evaluate(
     model,
     train_data_loader,
     valid_data_loader,
