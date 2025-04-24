@@ -68,10 +68,10 @@ class Decoder(nn.Module):
         if self.gru.bidirectional:
             hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
             
-        hidden = self.fc_hidden(hidden)
+        hidden = self.fc_hidden(hidden).squeeze(0)  # (BATCH_SIZE, HIDDEN_DIM)
         outputs = self.fc(outputs)
         outputs = self.dropout(outputs)
-        predictions = self.fc_out(outputs.squeeze(1))
+        predictions = self.fc_out(outputs).squeeze(1)  # (BATCH_SIZE, OUTPUT_DIM)
         
         return predictions, hidden, attn_weights
     
@@ -86,6 +86,7 @@ class Seq2Seq(nn.Module):
         batch_size = src.shape[0]
         trg_len = trg.shape[1]
         outputs = torch.zeros(batch_size, trg_len, OUTPUT_DIM).to(DEVICE)
+        # outputs = torch.zeros(batch_size, trg_len, OUTPUT_DIM)
         
         encoder_outputs, hidden = self.encoder(src)
 
@@ -99,6 +100,8 @@ class Seq2Seq(nn.Module):
             outputs[:, t, :] = output
             
             teacher_force = torch.rand(1, device=DEVICE).item() < teacher_forcing_ratio
+            # teacher_force = torch.rand(1).item() < teacher_forcing_ratio
+            
             top1 = output.argmax(1)
             input = trg[:, t] if teacher_force else top1
             
