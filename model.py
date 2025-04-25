@@ -15,10 +15,10 @@ INPUT_DIM = en_tokenizer.get_vocab_size()
 OUTPUT_DIM = vi_tokenizer.get_vocab_size()
 
 class Encoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers, dropout, bidirectional):
+    def __init__(self, input_dim, hidden_dim, embedding_dim, output_dim, num_layers, dropout, bidirectional):
         super(Encoder, self).__init__()
-        self.embedding = nn.Embedding(input_dim, hidden_dim)
-        self.gru = nn.GRU(hidden_dim, hidden_dim, num_layers=num_layers, bidirectional=bidirectional, batch_first=True)
+        self.embedding = nn.Embedding(input_dim, embedding_dim)
+        self.gru = nn.GRU(embedding_dim, hidden_dim, num_layers=num_layers, bidirectional=bidirectional, batch_first=True)
         self.fc = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         self.fc_hidden = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         self.layer_norm = nn.LayerNorm(hidden_dim * 2 if bidirectional else hidden_dim)
@@ -43,10 +43,10 @@ class Encoder(nn.Module):
 
     
 class Decoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers, dropout, bidirectional):
+    def __init__(self, input_dim, hidden_dim, embedding_dim, output_dim, num_layers, dropout, bidirectional):
         super(Decoder, self).__init__()
-        self.embedding = nn.Embedding(input_dim, hidden_dim)
-        self.gru = nn.GRU(hidden_dim*2, hidden_dim, num_layers=num_layers, bidirectional=bidirectional, batch_first=True)
+        self.embedding = nn.Embedding(input_dim, embedding_dim)
+        self.gru = nn.GRU(embedding_dim+hidden_dim, hidden_dim, num_layers=num_layers, bidirectional=bidirectional, batch_first=True)
         self.attention = BahdanauAttention(hidden_dim)
         self.fc_hidden = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         self.fc_out = nn.Linear(hidden_dim, output_dim)

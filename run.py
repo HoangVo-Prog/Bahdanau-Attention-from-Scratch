@@ -38,6 +38,7 @@ def main():
     encoder = Encoder(
         input_dim=INPUT_DIM,
         hidden_dim=HIDDEN_DIM,
+        embedding_dim=EMBEDDING_DIM,
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
@@ -47,6 +48,7 @@ def main():
     decoder = Decoder(
         input_dim=INPUT_DIM,
         hidden_dim=HIDDEN_DIM,
+        embedding_dim=EMBEDDING_DIM,
         output_dim=OUTPUT_DIM,
         num_layers=NUM_LAYERS,
         dropout=DROPOUT,
