@@ -88,6 +88,23 @@ def main():
     print("Training model...")
     print("Start training on:", DEVICE)
 
+    # train_and_evaluate(
+    #     model,
+    #     train_data_loader,
+    #     valid_data_loader,
+    #     optimizer,
+    #     criterion,
+    #     scheduler,
+    #     n_epochs=n_epochs,
+    #     teacher_forcing_ratio=0.5,
+    #     device=DEVICE,
+    #     start_epoch=start_epoch,
+    #     train_losses=train_losses,
+    #     val_losses=val_losses,
+    #     bleu_scores=bleu_scores,
+    #     best_valid_loss=best_valid_loss
+    # )
+    
     train_and_evaluate(
         model,
         train_data_loader,
@@ -96,7 +113,8 @@ def main():
         criterion,
         scheduler,
         n_epochs=n_epochs,
-        teacher_forcing_ratio=0.5,
+        initial_teacher_forcing_ratio=1.0,  # Start with full teacher forcing
+        final_teacher_forcing_ratio=0.3,    # End with partial teacher forcing
         device=DEVICE,
         start_epoch=start_epoch,
         train_losses=train_losses,

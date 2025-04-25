@@ -26,7 +26,7 @@ class Encoder(nn.Module):
         
     def forward(self, x):
        
-        x = x.to(DEVICE)
+        # x = x.to(DEVICE)
         embedded = self.dropout(self.embedding(x))
         outputs, hidden = self.gru(embedded)
         
@@ -72,7 +72,7 @@ class Decoder(nn.Module):
     
     def forward(self, input, encoder_outputs, hidden):
         # input.shape: (BATCH_SIZE, 1), encoder_outputs.shape: (BATCH_SIZE, MAX_LENGTH, HIDDEN_DIM), hidden.shape: (BATCH_SIZE, HIDDEN_DIM)
-        input = input.to(DEVICE)
+        # input = input.to(DEVICE)
         embedded = self.dropout(self.embedding(input))
         context, attn_weights = self.attention(hidden, encoder_outputs)
             
@@ -102,8 +102,8 @@ class Seq2Seq(nn.Module):
     def forward(self, src, trg, teacher_forcing_ratio=0.5):
         batch_size = src.shape[0]
         trg_len = trg.shape[1]
-        outputs = torch.zeros(batch_size, trg_len, OUTPUT_DIM).to(DEVICE)
-        # outputs = torch.zeros(batch_size, trg_len, OUTPUT_DIM)
+        # outputs = torch.zeros(batch_size, trg_len, OUTPUT_DIM).to(DEVICE)
+        outputs = torch.zeros(batch_size, trg_len, OUTPUT_DIM)
         
         encoder_outputs, hidden = self.encoder(src)
 
@@ -116,8 +116,8 @@ class Seq2Seq(nn.Module):
 
             outputs[:, t, :] = output
             
-            teacher_force = torch.rand(1, device=DEVICE).item() < teacher_forcing_ratio
-            # teacher_force = torch.rand(1).item() < teacher_forcing_ratio
+            # teacher_force = torch.rand(1, device=DEVICE).item() < teacher_forcing_ratio
+            teacher_force = torch.rand(1).item() < teacher_forcing_ratio
             
             top1 = output.argmax(1)
             input = trg[:, t] if teacher_force else top1
