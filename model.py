@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import torch.nn.init as init
 from config import *
 from attention import BahdanauAttention
 from Data.data import cache_or_process
@@ -53,6 +54,22 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.fc = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, hidden_dim)
         
+        self._initialize_weights()
+        
+    def _initialize_weights(self):
+        # GRU weight initialization
+            for name, param in self.gru.named_parameters():
+                if 'weight_ih' in name:  # input-to-hidden weights
+                    init.xavier_uniform_(param.data)
+                elif 'weight_hh' in name:  # hidden-to-hidden weights
+                    init.kaiming_uniform_(param.data, nonlinearity='relu')
+                elif 'bias' in name:
+                    init.constant_(param.data, 0)
+            
+            # Initialize Attention layers
+            init.xavier_uniform_(self.attention.Wa.weight.data)
+            init.xavier_uniform_(self.attention.Va.weight.data)
+    
     def forward(self, input, encoder_outputs, hidden):
         # input.shape: (BATCH_SIZE, 1), encoder_outputs.shape: (BATCH_SIZE, MAX_LENGTH, HIDDEN_DIM), hidden.shape: (BATCH_SIZE, HIDDEN_DIM)
         input = input.to(DEVICE)
