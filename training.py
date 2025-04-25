@@ -232,7 +232,7 @@ def evaluate_fn(model, val_loader, criterion, device='cuda'):
 
 
 def train_and_evaluate(model, train_loader, val_loader, optimizer, criterion, scheduler,
-                       n_epochs=1, teacher_forcing_ratio=0.5, device='cuda',
+                       n_epochs, initial_teacher_forcing_ratio, final_teacher_forcing_ratio, device='cuda',
                        start_epoch=0, train_losses=None, val_losses=None, bleu_scores=None,
                        best_valid_loss=float("inf")):
 
@@ -240,9 +240,11 @@ def train_and_evaluate(model, train_loader, val_loader, optimizer, criterion, sc
     val_losses = val_losses or []
     bleu_scores = bleu_scores or []
 
-    for epoch in tqdm(range(start_epoch, start_epoch+n_epochs), desc="Training Epochs"):
-        print(f"Epoch {epoch+1}/{start_epoch+n_epochs}")
+    for epoch in tqdm(range(start_epoch, n_epochs), desc="Training Epochs"):
+        print(f"Epoch {epoch+1}/{n_epochs}")
 
+        teacher_forcing_ratio = initial_teacher_forcing_ratio - (epoch / n_epochs) * (initial_teacher_forcing_ratio - final_teacher_forcing_ratio)
+        
         # Train the model
         train_loss = train_fn(model, train_loader, optimizer, criterion,
                               clip=1.0, teacher_forcing_ratio=teacher_forcing_ratio, device=device)
@@ -273,5 +275,5 @@ def train_and_evaluate(model, train_loader, val_loader, optimizer, criterion, sc
 
         scheduler.step(val_loss)
 
-    # Plot
     plot_metrics(train_losses, val_losses, bleu_scores)
+
