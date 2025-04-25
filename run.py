@@ -62,7 +62,7 @@ def main():
     model = Seq2Seq(encoder, decoder)
     model = model.to(DEVICE)
     
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
     criterion = nn.CrossEntropyLoss(ignore_index=src_pad_index)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2, verbose=True)
 
@@ -89,23 +89,6 @@ def main():
 
     print("Training model...")
     print("Start training on:", DEVICE)
-
-    # train_and_evaluate(
-    #     model,
-    #     train_data_loader,
-    #     valid_data_loader,
-    #     optimizer,
-    #     criterion,
-    #     scheduler,
-    #     n_epochs=n_epochs,
-    #     teacher_forcing_ratio=0.5,
-    #     device=DEVICE,
-    #     start_epoch=start_epoch,
-    #     train_losses=train_losses,
-    #     val_losses=val_losses,
-    #     bleu_scores=bleu_scores,
-    #     best_valid_loss=best_valid_loss
-    # )
     
     train_and_evaluate(
         model,

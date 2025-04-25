@@ -52,182 +52,128 @@ def compute_bleu(predictions, targets):
     # and the predictions should be a list of token IDs too.
     return corpus_bleu([[target] for target in targets], predictions, smoothing_function=smoothing_function)
 
-# def train_fn(model, train_loader, optimizer, criterion, clip, teacher_forcing_ratio=0.5, device='cuda'):
-#     model.train()  # Set model to training mode
-#     epoch_train_loss = 0
-
-#     for batch in train_loader:
-#         source = batch['src_ids'].to(device)
-#         target = batch['trg_ids'].to(device)
-
-#         optimizer.zero_grad()  # Clear previous gradients
-        
-#         # Forward pass
-#         output = model(source, target, teacher_forcing_ratio)  # Get the model's output
-#         output = output.to(device)
-#         # Calculate loss (using CrossEntropy loss between the predicted and true target)
-#         loss = criterion(output[1:].view(-1, output.size(-1)), target[1:].view(-1))  # Flatten for CE loss
-        
-#         loss.backward()  # Backpropagation
-        
-#         # **Apply gradient clipping** to prevent exploding gradients
-#         if clip:
-#             torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
-        
-#         optimizer.step()  # Update the model parameters
-        
-#         epoch_train_loss += loss.item()
-
-#     # Calculate average training loss for the epoch
-#     avg_train_loss = epoch_train_loss / len(train_loader)
-#     print(f"Training Loss: {avg_train_loss:.4f}")
-#     return avg_train_loss
-
-# def evaluate_fn(model, val_loader, criterion, device='cuda'):
-#     model.eval()  # Set model to evaluation mode
-#     epoch_val_loss = 0
-#     val_predictions = []
-#     val_targets = []
-
-#     with torch.no_grad():  # No need to compute gradients during evaluation
-#         for batch in val_loader:
-#             # Move data to the specified device (CUDA or CPU)
-#             source = batch['src_ids'].to(device)
-#             target = batch['trg_ids'].to(device)
-
-#             # Forward pass (no teacher forcing during evaluation)
-#             output = model(source, target, teacher_forcing_ratio=0)  # teacher_forcing_ratio=0 during evaluation
-            
-#             # Calculate loss
-#             loss = criterion(output[1:].view(-1, output.size(-1)), target[1:].view(-1))  # Flatten for CE loss
-
-#             epoch_val_loss += loss.item()
-
-#             # Store predictions and targets for BLEU score calculation (or other metrics)
-#             pred = output.argmax(dim=-1)
-#             val_predictions.extend(pred.cpu().numpy())
-#             val_targets.extend(target.cpu().numpy())
-
-#     # Calculate average validation loss for the epoch
-#     avg_val_loss = epoch_val_loss / len(val_loader)
-#     print(f"Validation Loss: {avg_val_loss:.4f}")
-
-#     # Calculate BLEU score (you can replace this with other evaluation metrics if needed)
-#     val_bleu_score = compute_bleu(val_predictions, val_targets)  # Assuming you have a BLEU function
-#     print(f"Validation BLEU Score: {val_bleu_score:.4f}")
-    
-#     return avg_val_loss, val_bleu_score
-
-# def train_and_evaluate(model, train_loader, val_loader, optimizer, criterion, scheduler,
-#                        n_epochs=1, teacher_forcing_ratio=0.5, device='cuda',
-#                        start_epoch=0, train_losses=None, val_losses=None, bleu_scores=None,
-#                        best_valid_loss=float("inf")):
-
-#     train_losses = train_losses or []
-#     val_losses = val_losses or []
-#     bleu_scores = bleu_scores or []
-
-#     for epoch in tqdm(range(start_epoch, start_epoch+n_epochs), desc="Training Epochs"):
-#         print(f"Epoch {epoch+1}/{start_epoch+n_epochs}")
-
-#         # Train the model
-#         train_loss = train_fn(model, train_loader, optimizer, criterion,
-#                               clip=1.0, teacher_forcing_ratio=teacher_forcing_ratio, device=device)
-#         train_losses.append(train_loss)
-
-#         # Evaluate the model
-#         val_loss, val_bleu_score = evaluate_fn(model, val_loader, criterion, device=device)
-#         val_losses.append(val_loss)
-#         bleu_scores.append(val_bleu_score)
-
-#         # Save best model
-#         if val_loss < best_valid_loss:
-#             best_valid_loss = val_loss
-#             torch.save({'epoch': epoch,
-#                         'model_state_dict': model.state_dict(),
-#                         'optimizer_state_dict': optimizer.state_dict(),
-#                         'scheduler_state_dict': scheduler.state_dict(),
-#                         'train_loss': train_loss,
-#                         'val_loss': val_loss,
-#                         'bleu_score': val_bleu_score
-#                         }, 'checkpoint.pth')
-
-
-#         # Print stats
-#         print(f"Epoch {epoch+1} | Train Loss: {train_loss:.3f} | Train PPL: {np.exp(train_loss):.3f}")
-#         print(f"Epoch {epoch+1} | Valid Loss: {val_loss:.3f} | Valid PPL: {np.exp(val_loss):.3f}")
-#         print(f"Epoch {epoch+1} | Valid BLEU Score: {val_bleu_score:.3f}")
-
-#         scheduler.step(val_loss)
-
-#     # Plot
-#     plot_metrics(train_losses, val_losses, bleu_scores)
-
 
 def train_fn(model, train_loader, optimizer, criterion, clip, teacher_forcing_ratio=0.5, device='cuda'):
-    model.train()  # Set model to training mode
+    model.train()
     epoch_train_loss = 0
+    total_batches = len(train_loader)
+    valid_batches = 0
 
-    for batch in train_loader:
-        source = batch['src_ids'].to(device)
-        target = batch['trg_ids'].to(device)
-
-        optimizer.zero_grad()  # Clear previous gradients
-        
-        # Forward pass
-        output = model(source, target, teacher_forcing_ratio)  # Get the model's output
-        
-        # Calculate loss (using CrossEntropy loss between the predicted and true target)
-        loss = criterion(output[1:].view(-1, output.size(-1)), target[1:].view(-1))  # Flatten for CE loss
-        
-        loss.backward()  # Backpropagation
-        
-        # **Apply gradient clipping** to prevent exploding gradients
-        if clip:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
-        
-        optimizer.step()  # Update the model parameters
-        
-        epoch_train_loss += loss.item()
-
-    # Calculate average training loss for the epoch
-    avg_train_loss = epoch_train_loss / len(train_loader)
-    print(f"Training Loss: {avg_train_loss:.4f}")
-    return avg_train_loss
-
-def evaluate_fn(model, val_loader, criterion, device='cuda'):
-    model.eval()  # Set model to evaluation mode
-    epoch_val_loss = 0
-    val_predictions = []
-    val_targets = []
-
-    with torch.no_grad():  # No need to compute gradients during evaluation
-        for batch in val_loader:
-            # Move data to the specified device (CUDA or CPU)
+    for batch_idx, batch in enumerate(train_loader):
+        try:
             source = batch['src_ids'].to(device)
             target = batch['trg_ids'].to(device)
 
-            # Forward pass (no teacher forcing during evaluation)
-            output = model(source, target, teacher_forcing_ratio=0)  # teacher_forcing_ratio=0 during evaluation
+            optimizer.zero_grad()
             
-            # Calculate loss
-            loss = criterion(output[1:].view(-1, output.size(-1)), target[1:].view(-1))  # Flatten for CE loss
+            # Forward pass with gradient scaling
+            with torch.cuda.amp.autocast(enabled=True):
+                output = model(source, target, teacher_forcing_ratio)
+                
+                if torch.isnan(output).any():
+                    print(f"NaN detected in model output at batch {batch_idx}")
+                    continue
+                
+                # Add small epsilon to prevent log(0)
+                output = torch.clamp(output, min=1e-7, max=1-1e-7)
+                
+                # Calculate loss
+                loss = criterion(output[1:].view(-1, output.size(-1)), target[1:].view(-1))
+            
+            if torch.isnan(loss) or torch.isinf(loss):
+                print(f"NaN/Inf detected in loss computation at batch {batch_idx}")
+                continue
 
-            epoch_val_loss += loss.item()
+            # Gradient clipping before backward pass
+            loss.backward()
+            
+            if clip:
+                # Clip gradients and check for NaN gradients
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clip)
+                
+                # Check for NaN gradients
+                valid_gradients = True
+                for name, param in model.named_parameters():
+                    if param.grad is not None:
+                        if torch.isnan(param.grad).any() or torch.isinf(param.grad).any():
+                            print(f"NaN/Inf gradient detected in {name}")
+                            valid_gradients = False
+                            break
+                
+                if not valid_gradients:
+                    optimizer.zero_grad()
+                    continue
 
-            # Store predictions and targets for BLEU score calculation (or other metrics)
-            pred = output.argmax(dim=-1)
-            val_predictions.extend(pred.cpu().numpy())
-            val_targets.extend(target.cpu().numpy())
+            optimizer.step()
+            
+            epoch_train_loss += loss.item()
+            valid_batches += 1
 
-    # Calculate average validation loss for the epoch
-    avg_val_loss = epoch_val_loss / len(val_loader)
-    print(f"Validation Loss: {avg_val_loss:.4f}")
+        except RuntimeError as e:
+            print(f"Error in batch {batch_idx}: {str(e)}")
+            continue
 
-    # Calculate BLEU score (you can replace this with other evaluation metrics if needed)
-    val_bleu_score = compute_bleu(val_predictions, val_targets)  # Assuming you have a BLEU function
-    print(f"Validation BLEU Score: {val_bleu_score:.4f}")
-    
+    # Calculate average training loss only for valid batches
+    avg_train_loss = epoch_train_loss / max(valid_batches, 1)  # Prevent division by zero
+    print(f"Training Loss: {avg_train_loss:.4f} (Valid batches: {valid_batches}/{total_batches})")
+    return avg_train_loss
+
+def evaluate_fn(model, val_loader, criterion, device='cuda'):
+    model.eval()
+    epoch_val_loss = 0
+    val_predictions = []
+    val_targets = []
+    valid_batches = 0
+    total_batches = len(val_loader)
+
+    with torch.no_grad():
+        for batch_idx, batch in enumerate(val_loader):
+            try:
+                source = batch['src_ids'].to(device)
+                target = batch['trg_ids'].to(device)
+
+                # Forward pass with gradient scaling
+                with torch.cuda.amp.autocast(enabled=True):
+                    output = model(source, target, teacher_forcing_ratio=0)
+                    
+                    if torch.isnan(output).any():
+                        print(f"NaN detected in model output at validation batch {batch_idx}")
+                        continue
+                    
+                    # Add small epsilon to prevent log(0)
+                    output = torch.clamp(output, min=1e-7, max=1-1e-7)
+                    
+                    # Calculate loss
+                    loss = criterion(output[1:].view(-1, output.size(-1)), target[1:].view(-1))
+
+                if torch.isnan(loss) or torch.isinf(loss):
+                    print(f"NaN/Inf detected in validation loss at batch {batch_idx}")
+                    continue
+
+                epoch_val_loss += loss.item()
+                valid_batches += 1
+
+                # Store predictions and targets for BLEU score calculation
+                pred = output.argmax(dim=-1)
+                val_predictions.extend(pred.cpu().numpy())
+                val_targets.extend(target.cpu().numpy())
+
+            except RuntimeError as e:
+                print(f"Error in validation batch {batch_idx}: {str(e)}")
+                continue
+
+    # Calculate average validation loss only for valid batches
+    avg_val_loss = epoch_val_loss / max(valid_batches, 1)
+    print(f"Validation Loss: {avg_val_loss:.4f} (Valid batches: {valid_batches}/{total_batches})")
+
+    # Calculate BLEU score only if we have predictions
+    if val_predictions and val_targets:
+        val_bleu_score = compute_bleu(val_predictions, val_targets)
+        print(f"Validation BLEU Score: {val_bleu_score:.4f}")
+    else:
+        print("Warning: No valid predictions for BLEU score calculation")
+        val_bleu_score = 0.0
+
     return avg_val_loss, val_bleu_score
 
 
